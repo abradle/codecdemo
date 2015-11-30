@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.biojava.nbio.structure.*;
 import org.biojava.nbio.structure.align.util.AtomCache;
-import org.compression.structureholders.CoreSingleStructure;
+import org.compression.domstructureholders.CoreSingleStructure;
 
 public class EquateStructuresTemp implements StructureTest{
 	// Now lets get the two structures	

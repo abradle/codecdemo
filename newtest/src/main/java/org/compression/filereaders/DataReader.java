@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 import org.biojava.nbio.structure.StructureException;
 import org.codehaus.jettison.json.JSONException;
-import org.compression.structureholders.CoreSingleStructure;
+import org.compression.domstructureholders.CoreSingleStructure;
 
 public interface DataReader {
 	// Readers return CoreSingleStructures

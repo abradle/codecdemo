@@ -3,20 +3,23 @@ package org.compression.filewriters;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONException;
-import org.compression.structureholders.CoreSingleStructure;
+import org.compression.domstructureholders.BioBean;
+import org.compression.domstructureholders.CoreSingleStructure;
 public class WriteFileRows extends AbstractDataWriter implements DataWriter {
 
-	public OutputStream writeStream(CoreSingleStructure my_struct) throws IOException, JSONException {
-		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
+	public OutputStream writeStream(CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		// Function to write a file as Rows
-		Map<String, Object> hmap = my_struct.getDataAsHashMap();
+		BioBean bioBean = my_struct.findDataAsBean();
+		ObjectMapper m = new ObjectMapper();
+		Map<String,Object> hmap = m.convertValue(bioBean, Map.class);
 		OutputStream outStream = new ByteArrayOutputStream();
-		String pdb_code = my_struct.getStructureCode();
+		String pdb_code = my_struct.findStructureCode();
 		hmap.remove("pdbCode");
 		try {
 			// First we write down all the columns
@@ -28,7 +31,7 @@ public class WriteFileRows extends AbstractDataWriter implements DataWriter {
 			}
 			String myKey = (String) hmap.keySet().toArray()[0];
 			// Second we fill out each of the rows
-			for (int i = 0; i < my_struct.getNumAtoms(); i++) {
+			for (int i = 0; i < my_struct.findNumAtoms(); i++) {
 				for (String key : hmap.keySet()) {
 					try {
 						outStream.write(String.valueOf(((ArrayList) hmap.get(key)).get(i)).getBytes());

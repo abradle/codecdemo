@@ -2,6 +2,10 @@ package org.compression.intarraycompressors;
 
 import java.util.ArrayList;
 
+import org.compression.domstructureholders.BioDataStruct;
+import org.compression.domstructureholders.CoreSingleStructure;
+import org.compression.domstructureholders.NoFloatDataStructBean;
+
 public class AddMinVal extends AbstractIntArrayCompressor implements IntArrayCompressor {
 
 
@@ -25,4 +29,5 @@ public class AddMinVal extends AbstractIntArrayCompressor implements IntArrayCom
 		
 		return new_list;
 	}
+
 }

@@ -3,30 +3,25 @@ package org.compression.intarraycompressors;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.compression.domstructureholders.CoreSingleStructure;
-
 import me.lemire.integercompression.Composition;
-import me.lemire.integercompression.benchmarktools.Benchmark;
 import me.lemire.integercompression.FastPFOR;
 import me.lemire.integercompression.IntWrapper;
 import me.lemire.integercompression.IntegerCODEC;
 import me.lemire.integercompression.VariableByte;
 
-public class PFORCompress extends AbstractIntArrayCompressor implements IntArrayCompressor {
+public class DeltaZigZag extends AbstractIntArrayCompressor implements IntArrayCompressor {
 
 	public ArrayList<Integer> compressIntArray(ArrayList<Integer> inArray) {
 		// Function to compress an array - using PFOR compression
 		int N = inArray.size();
-
 		int[] data = convertIntegers(inArray);
     	int[] compressed = new int [N+1024];// could need more
-
-		
     	IntegerCODEC codec =  new
-                Composition(
-                        new FastPFOR(),
-                        new VariableByte());
 
+            Composition(
+                     new FastPFOR(),
+                     new VariableByte());
+         // compressing
          IntWrapper inputoffset = new IntWrapper(0);
          IntWrapper outputoffset = new IntWrapper(0);
          codec.compress(data,inputoffset,data.length,compressed,outputoffset);
@@ -47,6 +42,5 @@ public class PFORCompress extends AbstractIntArrayCompressor implements IntArray
          // Now return this
 		return outArray;
 	}
-
 
 }

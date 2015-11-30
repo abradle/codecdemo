@@ -9,9 +9,8 @@ import org.apache.commons.io.IOUtils;
 import org.biojava.nbio.structure.StructureException;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.compression.structureholders.BasicDataHolder;
-import org.compression.structureholders.BioDataStruct;
-import org.compression.structureholders.CoreSingleStructure;
+import org.compression.domstructureholders.BioDataStruct;
+import org.compression.domstructureholders.CoreSingleStructure;
 
 public class ReadJSON extends AbstractDataReader implements DataReader {
 
@@ -32,9 +31,8 @@ public class ReadJSON extends AbstractDataReader implements DataReader {
 			e.printStackTrace();
 		}
 		// Need to find the in_code => should be 
-		BioDataStruct bioStruct = new BioDataStruct();
-		CoreSingleStructure bdh = new BasicDataHolder(bioStruct);
-		bdh.setStructureCode(jsonObject.getString("pdbCode"));
+		CoreSingleStructure bioStruct = new BioDataStruct();
+		bioStruct.setStructureCode(jsonObject.getString("pdbCode"));
 		// Remove this key
 		jsonObject.remove("pdbCode");
 		Iterator<?> keys = jsonObject.keys();
@@ -43,9 +41,9 @@ public class ReadJSON extends AbstractDataReader implements DataReader {
 		    String[] parts = jsonObject.getString(key).replace("[", "").replace("]", "").split(",");
 		    int i =0;
 		    for (Object part : parts) {
-			    bdh.fillBioDataStruct(key, part);
+			    bioStruct.fillDataStruct(key, part);
 			}
 		}
-		return bdh;
+		return bioStruct;
 	}
 }

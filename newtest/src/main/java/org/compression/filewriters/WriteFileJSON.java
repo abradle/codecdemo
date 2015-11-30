@@ -3,20 +3,25 @@ package org.compression.filewriters;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.compression.structureholders.BasicDataHolder;
-import org.compression.structureholders.BioDataStruct;
-import org.compression.structureholders.CoreSingleStructure;
+import org.compression.domstructureholders.BioBean;
+import org.compression.domstructureholders.CoreSingleStructure;
 
 public class WriteFileJSON extends AbstractDataWriter implements DataWriter {
 
-	public OutputStream writeStream(CoreSingleStructure my_struct) throws IOException, JSONException {
+	public OutputStream writeStream(CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException,  NoSuchMethodException, InvocationTargetException {
 		// TODO Auto-generated method stub
-		JSONObject my_json = my_struct.getDataAsJSON();
+		BioBean bioBean = my_struct.findDataAsBean();
+		ObjectMapper m = new ObjectMapper();
+		Map<String,Object> hMap = m.convertValue(bioBean, Map.class);
+		JSONObject myJson = new JSONObject(hMap);
 		OutputStream outStream = new ByteArrayOutputStream();
-		outStream.write(my_json.toString().getBytes());
+		outStream.write(myJson.toString().getBytes());
 		outStream.flush();
 		outStream.close();
 		return outStream;

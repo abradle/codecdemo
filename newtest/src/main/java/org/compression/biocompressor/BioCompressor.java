@@ -1,9 +1,11 @@
 package org.compression.biocompressor;
 
-import org.compression.structureholders.CoreSingleStructure;
+import java.lang.reflect.InvocationTargetException;
+
+import org.compression.domstructureholders.CoreSingleStructure;
 
 public interface BioCompressor {
 	
-	public CoreSingleStructure compresStructure(CoreSingleStructure coress);
+	public CoreSingleStructure compresStructure(CoreSingleStructure coress) throws IllegalAccessException, InvocationTargetException;
 
 }

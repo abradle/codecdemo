@@ -2,14 +2,17 @@ package org.compression.intarraydecompressors;
 
 import java.util.ArrayList;
 
-import org.compression.intarraycompressors.AbstractIntArrayCompressor;
-import org.compression.intarraycompressors.IntArrayCompressor;
 
 public class SubMinVal extends AbstractIntArrayDeCompressor implements IntArrayDeCompressor {
 
 	public ArrayList<Integer> decompressIntArray(ArrayList<Integer> inArray) {
-		// TODO Auto-generated method stub
-		return null;
+		// Loop over the array
+		ArrayList<Integer> outArray = new ArrayList<Integer>(inArray.size()-1);
+		int minVal = inArray.get(0);
+		for(int i=1; i<inArray.size();i++){
+			outArray.add(inArray.get(i)-minVal);
+		}
+		return outArray;
 	}
 
 }

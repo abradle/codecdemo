@@ -7,26 +7,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.compression.structureholders.CoreSingleStructure;
+import org.compression.domstructureholders.CoreSingleStructure;
 
 public class AbstractDataWriter {
 	// A template class 
 	
-	public void writeFile(String file_path, CoreSingleStructure my_struct) throws IOException, JSONException {
+	public void writeFile(String file_path, CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException,IllegalAccessException, NoSuchMethodException {
 		// Get the output stream and write it
 		OutputStream outStream = writeStream(my_struct);
 		PrintWriter writer = new PrintWriter(new File(file_path));
 		writer.write(outStream.toString());
 		writer.close();
 	}
-	public InputStream writeInStream(CoreSingleStructure my_struct) throws IOException, JSONException {
+	public InputStream writeInStream(CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		// Function to create an input stream from an output stream
 		return new ByteArrayInputStream(writeStream(my_struct).toString().getBytes());
 	}
-	public OutputStream writeStream(CoreSingleStructure my_struct) throws IOException, JSONException {
+	public OutputStream writeStream(CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		// TODO Auto-generated method stub
 		System.out.println("FUNCTION NOT PREPERAED");
 		return null;
