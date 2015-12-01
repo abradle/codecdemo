@@ -2,6 +2,7 @@ package org.compression.filewriters;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,18 +17,18 @@ import org.compression.domstructureholders.CoreSingleStructure;
 public class AbstractDataWriter {
 	// A template class 
 	
-	public void writeFile(String file_path, CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException,IllegalAccessException, NoSuchMethodException {
+	public void writeFile(String file_path, CoreSingleStructure my_struct) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException, JSONException {
 		// Get the output stream and write it
 		OutputStream outStream = writeStream(my_struct);
 		PrintWriter writer = new PrintWriter(new File(file_path));
 		writer.write(outStream.toString());
 		writer.close();
 	}
-	public InputStream writeInStream(CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public InputStream writeInStream(CoreSingleStructure my_struct) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException, JSONException  {
 		// Function to create an input stream from an output stream
 		return new ByteArrayInputStream(writeStream(my_struct).toString().getBytes());
 	}
-	public OutputStream writeStream(CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public OutputStream writeStream(CoreSingleStructure my_struct) throws IOException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException{
 		// TODO Auto-generated method stub
 		System.out.println("FUNCTION NOT PREPERAED");
 		return null;

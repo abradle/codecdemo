@@ -18,13 +18,14 @@ public class SquashBenchmark {
 			//System.out.println(printString);
 			Process p = Runtime.getRuntime().exec(printString);
 			p.waitFor();
-			resultMap.put(codec, cfs.getFileSize(filePath)/cfs.getFileSize(filePath+"."+codec));
+			// Puts the result - comparison is to uncompressed file
+			resultMap.put(codec, cfs.getFileSize(filePath+"."+codec));
 		}
 		return resultMap;
 	}
 	
 	private List<String> getCodecList(){
-		
+		// Set up the different compressions
 		List<String> myList = new ArrayList<String>();
 		myList.add("brieflz");
 		myList.add("brotli");

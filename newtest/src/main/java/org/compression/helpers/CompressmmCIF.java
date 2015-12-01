@@ -60,6 +60,7 @@ import org.compression.filedecompressors.GzipDeCompress;
 import org.compression.filereaders.DataReader;
 import org.compression.filereaders.ReadCols;
 import org.compression.filewriters.DataWriter;
+import org.compression.filewriters.WriteFileBSON;
 import org.compression.filewriters.WriteFileCols;
 import org.compression.filewriters.WriteFileJSON;
 import org.compression.biocompressor.BioCompressor;
@@ -93,63 +94,68 @@ import org.biojava.nbio.structure.align.model.AFPChain;
 	public class CompressmmCIF {
 
 		public static void main(String[] args) throws IOException, StructureException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, InterruptedException {
-			
-			BioDataStruct bdh = new BioDataStruct("1FFK");
-			DataWriter dataWrite = new WriteFileJSON();
-			DataReader dataRead = new ReadCols();
-			dataWrite.writeFile("OUT.TEST.COLS", bdh);
 			BioCompressor cd = new CompressDoubles();
-			BioDeCompressor bcd = new DeCompressDoubles();
-			BioCompressor newCd = new CompressResidues();
-			BioDeCompressor newBcd = new DeCompressResidues();
-			// Remove doubles
+			BioDataStruct bdh = new BioDataStruct("1ffk");
 			CoreSingleStructure outStruct = cd.compresStructure(bdh);
-			dataWrite.writeFile("OUT.TEST.COLS.TWO", outStruct);
-			// Remove the duplicated residue info
-//			ResidueGraphDataStruct inStruct = (ResidueGraphDataStruct) newCd.compresStructure(outStruct);
-//			dataWrite.writeFile("OUT.TEST.COLS.THREE", inStruct);
-
-			// TEST THIS OUT
-			BioCompressor newOrderAtoms = new CompressOrderAtoms();
-			OrderedDataStruct inStruct = (OrderedDataStruct) newOrderAtoms.compresStructure(outStruct);
-			dataWrite.writeFile("OUT.TEST.COLS.THREE_ORDERED", inStruct);
-			
-//			inStruct = orderedStruct;
-			
-			IntArrayCompressor intArrCompTwo = new AddMinVal();
-			IntArrayCompressor intArrComp = new FindDeltas();
-			IntArrayCompressor intArrCompThree = new PFORCompress();
-			IntArrayCompressor intArrCompFour = new RunLengthEncode();
-			IntArrayDeCompressor intArrDeCompFour = new RunLengthDecode();
-			IntArrayDeCompressor intArrDeComp = new RemoveDeltas();
-			// Now compress the integer arrays
-			ArrayList<Integer> cartnX = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_xInt();
-			ArrayList<Integer> cartnY = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_yInt();
-			ArrayList<Integer> cartnZ = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_zInt();
-
-			inStruct.set_atom_site_Cartn_xInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnX)));
-			inStruct.set_atom_site_Cartn_yInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnY)));
-			inStruct.set_atom_site_Cartn_zInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnZ)));
-
-			// Now the occupancy and BFACTOR
-			inStruct.set_atom_site_B_iso_or_equivInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_B_iso_or_equivInt())));
-			inStruct.set_atom_site_occupancyInt(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_occupancyInt())));
-			
-			// Now the sequential numbers
-			inStruct.set_atom_site_pdbx_PDB_model_num(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_pdbx_PDB_model_num())));
-			inStruct.set_atom_site_auth_seq_id(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_auth_seq_id())));
-			inStruct.set_atom_site_label_entity_poly_seq_num(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_label_entity_poly_seq_num())));			
-			inStruct.set_atom_site_id(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_id())));
-			// NOW THE STRINGS
-			StringArrayCompressor stringRunEncode = new RunLengthEncodeString();
-			inStruct.set_atom_site_label_alt_id(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_label_alt_id()));
-			inStruct.set_atom_site_label_entity_id(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_label_entity_id()));
-			inStruct.set_atom_site_pdbx_PDB_ins_code(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_pdbx_PDB_ins_code()));
-			dataWrite.writeFile("OUT.TEST.COLS.FOUR", inStruct);
+			WriteFileBSON dataWrite = new WriteFileBSON();
+			dataWrite.writeBinaryFile("TEST_BSON",outStruct);
 			SquashBenchmark sb = new SquashBenchmark();
-			Map<String, Double> myMap = sb.benchmarkCompression("OUT.TEST.COLS.FOUR");
-			System.out.println(myMap);
-//			   
+			sb.benchmarkCompression("TEST_BSON");
+			WriteFileJSON dataWriteJSON = new WriteFileJSON();
+			dataWriteJSON.writeFile("TEST_JSON",outStruct);
+			sb.benchmarkCompression("TEST_JSON");
+//			dataWrite.writeFile("OUT.TEST.COLS", bdh);
+//			
+//			BioDeCompressor bcd = new DeCompressDoubles();
+//			BioCompressor newCd = new CompressResidues();
+//			BioDeCompressor newBcd = new DeCompressResidues();
+//			// Remove doubles
+//			CoreSingleStructure outStruct = cd.compresStructure(bdh);
+//			dataWrite.writeFile("OUT.TEST.COLS.TWO", outStruct);
+//			// Remove the duplicated residue info
+////			ResidueGraphDataStruct inStruct = (ResidueGraphDataStruct) newCd.compresStructure(outStruct);
+////			dataWrite.writeFile("OUT.TEST.COLS.THREE", inStruct);
+//
+//			// TEST THIS OUT
+//			BioCompressor newOrderAtoms = new CompressOrderAtoms();
+//			OrderedDataStruct inStruct = (OrderedDataStruct) newOrderAtoms.compresStructure(outStruct);
+//			dataWrite.writeFile("OUT.TEST.COLS.THREE_ORDERED", inStruct);
+//			
+////			inStruct = orderedStruct;
+//			
+//			IntArrayCompressor intArrCompTwo = new AddMinVal();
+//			IntArrayCompressor intArrComp = new FindDeltas();
+//			IntArrayCompressor intArrCompThree = new PFORCompress();
+//			IntArrayCompressor intArrCompFour = new RunLengthEncode();
+//			IntArrayDeCompressor intArrDeCompFour = new RunLengthDecode();
+//			IntArrayDeCompressor intArrDeComp = new RemoveDeltas();
+//			// Now compress the integer arrays
+//			ArrayList<Integer> cartnX = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_xInt();
+//			ArrayList<Integer> cartnY = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_yInt();
+//			ArrayList<Integer> cartnZ = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_zInt();
+//
+//			inStruct.set_atom_site_Cartn_xInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnX)));
+//			inStruct.set_atom_site_Cartn_yInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnY)));
+//			inStruct.set_atom_site_Cartn_zInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnZ)));
+//
+//			// Now the occupancy and BFACTOR
+//			inStruct.set_atom_site_B_iso_or_equivInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_B_iso_or_equivInt())));
+//			inStruct.set_atom_site_occupancyInt(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_occupancyInt())));
+//			
+//			// Now the sequential numbers
+//			inStruct.set_atom_site_pdbx_PDB_model_num(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_pdbx_PDB_model_num())));
+//			inStruct.set_atom_site_auth_seq_id(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_auth_seq_id())));
+//			inStruct.set_atom_site_label_entity_poly_seq_num(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_label_entity_poly_seq_num())));			
+//			inStruct.set_atom_site_id(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_id())));
+//			// NOW THE STRINGS
+//			StringArrayCompressor stringRunEncode = new RunLengthEncodeString();
+//			inStruct.set_atom_site_label_alt_id(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_label_alt_id()));
+//			inStruct.set_atom_site_label_entity_id(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_label_entity_id()));
+//			inStruct.set_atom_site_pdbx_PDB_ins_code(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_pdbx_PDB_ins_code()));
+//			dataWrite.writeFile("OUT.TEST.COLS.FOUR", inStruct);
+//			SquashBenchmark sb = new SquashBenchmark();
+//			Map<String, Double> myMap = sb.benchmarkCompression("OUT.TEST.COLS.FOUR");
+//			System.out.println(myMap);
 
 //			BioDataStruct newStructure = (BioDataStruct) myDataR.readFile("OUT.TEST."+types);
 //			BioDataStruct newStructure = readWriteFiles(dataWrite, dataRead, "COLS");

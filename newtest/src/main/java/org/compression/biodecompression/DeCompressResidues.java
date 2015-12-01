@@ -40,7 +40,7 @@ public class DeCompressResidues extends AbstractBioDeCompressor implements BioDe
 		String[] topLine = mySplitInfo[0].split("\t");
 		String groupPDB = topLine[0];
 		String compID = topLine[1];
-		String authCompId = topLine[2];
+//		String authCompId = topLine[2];
 		int counter = 0;
 		for (String line: mySplitInfo){
 			if(counter==0){
@@ -49,12 +49,12 @@ public class DeCompressResidues extends AbstractBioDeCompressor implements BioDe
 			}
 			outStruct.get_atom_site_group_PDB().add(groupPDB);
 			outStruct.get_atom_site_label_comp_id().add(compID);
-			outStruct.get_atom_site_auth_comp_id().add(authCompId);
+//			outStruct.get_atom_site_auth_comp_id().add(authCompId);
 			String[] thisLine = line.split("\t");
 			// Get these on each line
-			outStruct.get_atom_site_auth_atom_id().add(thisLine[0]);
-			outStruct.get_atom_site_label_atom_id().add(thisLine[1]);
-			outStruct.get_atom_site_symbol().add(thisLine[2]);
+//			outStruct.get_atom_site_auth_atom_id().add(thisLine[0]);
+			outStruct.get_atom_site_label_atom_id().add(thisLine[0]);
+			outStruct.get_atom_site_symbol().add(thisLine[1]);
 
 		}
 

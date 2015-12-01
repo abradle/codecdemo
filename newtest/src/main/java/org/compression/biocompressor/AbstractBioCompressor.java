@@ -21,7 +21,7 @@ public class AbstractBioCompressor {
 		String infoValue = "";
 		// Now loop over and create the hashmaps
 		for(int i=0; i<coress.findNumAtoms(); i++){
-			resName = noatomDS.get_atom_site_auth_comp_id().get(i);
+			resName = noatomDS.get_atom_site_label_comp_id().get(i);
 			int resNum = noatomDS.get_atom_site_auth_seq_id().get(i);
 			if(resNum!=oldNum){
 				if(oldNum != -1){
@@ -54,7 +54,7 @@ public class AbstractBioCompressor {
 		String infoValue = "";
 		// Now loop over and create the hashmaps
 		for(int i=0; i<coress.findNumAtoms(); i++){
-			resName = noatomDS.get_atom_site_auth_comp_id().get(i);
+			resName = noatomDS.get_atom_site_label_comp_id().get(i);
 			int resNum = noatomDS.get_atom_site_auth_seq_id().get(i);
 			if(resNum!=oldNum){
 				if(oldNum != -1){
@@ -99,8 +99,8 @@ private String allInfo(NonAtomDataStruct noatomDS, int i) {
 	String ender = "\n";
 	// TODO Auto-generated method stub
 	String outString = noatomDS.get_atom_site_group_PDB().get(i)+delimeter;
-	outString+= noatomDS.get_atom_site_label_comp_id().get(i)+delimeter;
-	outString+= noatomDS.get_atom_site_auth_comp_id().get(i)+ender;
+	outString+= noatomDS.get_atom_site_label_comp_id().get(i)+ender;
+//	outString+= noatomDS.get_atom_site_auth_comp_id().get(i)+ender;
 	return outString;
 }
 
@@ -112,7 +112,7 @@ private String packInfo(NonAtomDataStruct noatomDS,int i) {
 	// Function to pack up the required info - has a corollary to unpack data
 	/// STORE THIS INFORMATION
 	String outString = "";
-	outString+=noatomDS.get_atom_site_auth_atom_id().get(i)+delimeter;
+//	outString+=noatomDS.get_atom_site_auth_atom_id().get(i)+delimeter;
 	outString+=noatomDS.get_atom_site_label_atom_id().get(i)+delimeter;
 	outString+=noatomDS.get_atom_site_symbol().get(i)+ender;
 	return outString;

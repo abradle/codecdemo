@@ -17,68 +17,70 @@ public class CompressOrderAtoms extends AbstractBioCompressor implements BioComp
 			// Now update the information
 			updateInfo(ordGraphDS, coress, noatomDS);
 			// Now alter the order of the 
-			// Get the list of infos
-			List<String> infoArray = new ArrayList<String>(ordGraphDS.getResToInfo());
-			// The array(s) to alter
-			int listSize = ordGraphDS.get_atom_site_Cartn_xInt().size();
-			List<Integer> outArrayXInt = fillArrayList(listSize);
-			List<Integer> outArrayYInt = fillArrayList(listSize); 
-			List<Integer> outArrayZInt =  fillArrayList(listSize);
-			List<Integer> outArrayTempF =  fillArrayList(listSize);
-			List<Integer> outArrayOcc =  fillArrayList(listSize);
-
-
-			Integer index = 0;
-			// Now update the order of the atoms so they are as close together as possible
-			for(Integer resNum: ordGraphDS.getResOrder()){
-				// Get the atom map for this residue - simple implementation - move atoms 2 and 3 (0 index) to the end - C and O
-				Integer numAtoms = getNumAtoms(infoArray.get(resNum));
-				Integer newIndex = 0;
-				for(int i=0; i<numAtoms; i++){
-					if(i<2){
-						newIndex=i+index;
-					}
-					else if(i==2){
-						newIndex=numAtoms+index-1;
-						
-					}
-					else if(i==3){
-						newIndex=numAtoms+index;
-					}
-					else if(i>3){
-						// Draw it back two
-						newIndex=i+index-2;
-					}
-					// Update all the values
-					outArrayXInt.set(newIndex, ordGraphDS.get_atom_site_Cartn_xInt().get(i));
-					outArrayYInt.set(newIndex, ordGraphDS.get_atom_site_Cartn_yInt().get(i));
-					outArrayZInt.set(newIndex, ordGraphDS.get_atom_site_Cartn_zInt().get(i));
-					outArrayTempF.set(newIndex, ordGraphDS.get_atom_site_B_iso_or_equivInt().get(i));
-					outArrayOcc.set(newIndex, ordGraphDS.get_atom_site_occupancyInt().get(i));
-
-				}
-				// Now update the index
-				index+=numAtoms;
-			}
-			
-			
-			// Now set up the coords
-			// Lets test
-			System.out.println("BEFORE");
-			System.out.println(sumDeltas(ordGraphDS.get_atom_site_Cartn_xInt()));
-			System.out.println("AFTER");
-			System.out.println(sumDeltas(outArrayXInt));
-			System.out.println("DIFFERENCE");
-			System.out.println(sumDeltas(ordGraphDS.get_atom_site_Cartn_xInt())-sumDeltas(outArrayXInt));
-			ordGraphDS.set_atom_site_Cartn_xInt(outArrayXInt);
-			
-			
-			
-			ordGraphDS.set_atom_site_Cartn_yInt(outArrayYInt);
-			ordGraphDS.set_atom_site_Cartn_zInt(outArrayZInt);
-			// Now set the temp factor
-			ordGraphDS.set_atom_site_B_iso_or_equivInt(outArrayTempF);
-			ordGraphDS.set_atom_site_occupancyInt(outArrayOcc);
+//			// Get the list of infos
+//			List<String> infoArray = new ArrayList<String>(ordGraphDS.getResToInfo());
+//			// The array(s) to alter
+//			int listSize = ordGraphDS.get_atom_site_Cartn_xInt().size();
+//			List<Integer> outArrayXInt = fillArrayList(listSize);
+//			List<Integer> outArrayYInt = fillArrayList(listSize); 
+//			List<Integer> outArrayZInt =  fillArrayList(listSize);
+//			List<Integer> outArrayTempF =  fillArrayList(listSize);
+//			List<Integer> outArrayOcc =  fillArrayList(listSize);
+//
+//
+//			Integer index = 0;
+//			// Now update the order of the atoms so they are as close together as possible
+//			for(Integer resNum: ordGraphDS.getResOrder()){
+//				// Get the atom map for this residue - simple implementation - move atoms 2 and 3 (0 index) to the end - C and O
+//				Integer numAtoms = getNumAtoms(infoArray.get(resNum));
+//				Integer newIndex = 0;
+//				for(int i=0; i<numAtoms; i++){
+//					if(i<2){
+//						newIndex=i+index;
+//					}
+//					else if(i==2){
+//						// Second last
+//						newIndex=numAtoms+index-2;
+//						
+//					}
+//					else if(i==3){
+//						// Last
+//						newIndex=numAtoms+index-1;
+//					}
+//					else if(i>3){
+//						// Draw it back two
+//						newIndex=i+index-2;
+//					}
+//					// Update all the values
+//					outArrayXInt.set(newIndex, ordGraphDS.get_atom_site_Cartn_xInt().get(index+i));
+//					outArrayYInt.set(newIndex, ordGraphDS.get_atom_site_Cartn_yInt().get(index+i));
+//					outArrayZInt.set(newIndex, ordGraphDS.get_atom_site_Cartn_zInt().get(index+i));
+//					outArrayTempF.set(newIndex, ordGraphDS.get_atom_site_B_iso_or_equivInt().get(index+i));
+//					outArrayOcc.set(newIndex, ordGraphDS.get_atom_site_occupancyInt().get(index+i));
+//
+//				}
+//				// Now update the index
+//				index+=numAtoms;
+//			}
+//			
+//			
+//			// Now set up the coords
+//			// Lets test
+//			System.out.println("BEFORE");
+//			System.out.println(sumDeltas(ordGraphDS.get_atom_site_Cartn_xInt()));
+//			System.out.println("AFTER");
+//			System.out.println(sumDeltas(outArrayXInt));
+//			System.out.println("DIFFERENCE");
+//			System.out.println(sumDeltas(ordGraphDS.get_atom_site_Cartn_xInt())-sumDeltas(outArrayXInt));
+//			ordGraphDS.set_atom_site_Cartn_xInt(outArrayXInt);
+//			
+//			
+//			
+//			ordGraphDS.set_atom_site_Cartn_yInt(outArrayYInt);
+//			ordGraphDS.set_atom_site_Cartn_zInt(outArrayZInt);
+//			// Now set the temp factor
+//			ordGraphDS.set_atom_site_B_iso_or_equivInt(outArrayTempF);
+//			ordGraphDS.set_atom_site_occupancyInt(outArrayOcc);
 			return ordGraphDS;
 		}
 		private List<Integer> fillArrayList(int arraySize) {
@@ -91,8 +93,15 @@ public class CompressOrderAtoms extends AbstractBioCompressor implements BioComp
 		}
 
 		private int getNumAtoms(String resInfo){
-			int numLines = resInfo.split("\n").length;
-			return numLines-1;
+			int numLines=0;
+			for(String item: resInfo.split("\n")){
+				if(item.startsWith("ATOM") | item.startsWith("HETATM")){					
+				}
+				else{
+					numLines+=1;
+				}
+			}
+			return numLines;
 			
 		}
 		private Integer sumDeltas(List<Integer> list){

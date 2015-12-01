@@ -24,18 +24,18 @@ public class NonAtomDataStruct extends CoreDataStruct {
 	public void set_atom_site_asym_id(List<String> _atom_site_asym_id) {
 		this._atom_site_asym_id = _atom_site_asym_id;
 	}
-	public List<String> get_atom_site_auth_atom_id() {
-		return _atom_site_auth_atom_id;
-	}
-	public void set_atom_site_auth_atom_id(List<String> _atom_site_auth_atom_id) {
-		this._atom_site_auth_atom_id = _atom_site_auth_atom_id;
-	}
-	public List<String> get_atom_site_auth_comp_id() {
-		return _atom_site_auth_comp_id;
-	}
-	public void set_atom_site_auth_comp_id(List<String> _atom_site_auth_comp_id) {
-		this._atom_site_auth_comp_id = _atom_site_auth_comp_id;
-	}
+//	public List<String> get_atom_site_auth_atom_id() {
+//		return _atom_site_auth_atom_id;
+//	}
+//	public void set_atom_site_auth_atom_id(List<String> _atom_site_auth_atom_id) {
+//		this._atom_site_auth_atom_id = _atom_site_auth_atom_id;
+//	}
+//	public List<String> get_atom_site_auth_comp_id() {
+//		return _atom_site_auth_comp_id;
+//	}
+//	public void set_atom_site_auth_comp_id(List<String> _atom_site_auth_comp_id) {
+//		this._atom_site_auth_comp_id = _atom_site_auth_comp_id;
+//	}
 	public List<Integer> get_atom_site_auth_seq_id() {
 		return _atom_site_auth_seq_id;
 	}
@@ -48,12 +48,12 @@ public class NonAtomDataStruct extends CoreDataStruct {
 	public void set_atom_site_pdbx_PDB_ins_code(List<String> _atom_site_pdbx_PDB_ins_code) {
 		this._atom_site_pdbx_PDB_ins_code = _atom_site_pdbx_PDB_ins_code;
 	}
-	public List<Integer> get_atom_site_pdbx_PDB_model_num() {
-		return _atom_site_pdbx_PDB_model_num;
-	}
-	public void set_atom_site_pdbx_PDB_model_num(List<Integer> _atom_site_pdbx_PDB_model_num) {
-		this._atom_site_pdbx_PDB_model_num = _atom_site_pdbx_PDB_model_num;
-	}
+//	public List<Integer> get_atom_site_pdbx_PDB_model_num() {
+//		return _atom_site_pdbx_PDB_model_num;
+//	}
+//	public void set_atom_site_pdbx_PDB_model_num(List<Integer> _atom_site_pdbx_PDB_model_num) {
+//		this._atom_site_pdbx_PDB_model_num = _atom_site_pdbx_PDB_model_num;
+//	}
 	public List<String> get_atom_site_group_PDB() {
 		return _atom_site_group_PDB;
 	}
@@ -105,11 +105,11 @@ public class NonAtomDataStruct extends CoreDataStruct {
 	private List<String> _atom_site_asym_id = new ArrayList<String>();
 	// This data item is an author defined alternative to the value of
 	// _atom_site_label_atom_id_ This item holds the PDB atom name_
-	private List<String> _atom_site_auth_atom_id = new ArrayList<String>();
+//	private List<String> _atom_site_auth_atom_id = new ArrayList<String>();
 	// This data item is an author defined alternative to the value of
 	// _atom_site_label_comp_id_ This item holds the PDB 3-letter-code
 	// residue names
-	private List<String> _atom_site_auth_comp_id = new ArrayList<String>();
+//	private List<String> _atom_site_auth_comp_id = new ArrayList<String>();
 	// This data item is an author defined alternative to the value of
 	// _atom_site_label_seq_id_ This item holds the PDB residue number_
 	private List<Integer> _atom_site_auth_seq_id = new ArrayList<Integer>();
@@ -118,7 +118,7 @@ public class NonAtomDataStruct extends CoreDataStruct {
 	private List<String> _atom_site_pdbx_PDB_ins_code = new ArrayList<String>();
 	// This data item identifies the model number in an ensemble of
 	// coordinate data_
-	private List<Integer> _atom_site_pdbx_PDB_model_num = new ArrayList<Integer>();
+//	private List<Integer> _atom_site_pdbx_PDB_model_num = new ArrayList<Integer>();
 	// This data item is a place holder for the tags used by the PDB to
 	// identify coordinate records (e_g_ ATOM or HETATM)_
 	private List<String> _atom_site_group_PDB = new ArrayList<String>();
@@ -148,5 +148,4 @@ public class NonAtomDataStruct extends CoreDataStruct {
 	// may other structural categories_ This identifier has no meaning
 	// for non-polymer entities_
 	private List<String> _atom_site_label_entity_id= new ArrayList<String>();
-
 }

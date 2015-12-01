@@ -135,7 +135,7 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
     	a.setElement(Element.valueOfIgnoreCase(get_atom_site_symbol().get(i)));
     	
         // This data item is an author defined alternative to the value of _atom_site.label_atom_id. This item holds the PDB atom name.
-        a.setName((String) get_atom_site_auth_atom_id().get(i));
+//        a.setName((String) get_atom_site_auth_atom_id().get(i));
         
         // This item is a uniquely identifies for each alternative site for this atom position.
         a.setAltLoc(get_atom_site_label_alt_id().get(i).toString().charAt(0));
@@ -161,17 +161,17 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 
 		// Throw an exception here
 		}
-        // This data item is an author defined alternative to the value of _atom_site.label_comp_id. This item holds the PDB 3-letter-code residue names
-		try{
-			new_g.setPDBName((String) get_atom_site_auth_comp_id().get(i));
-
-		}
-		catch(Exception NullPointerException) {
-			Object me = get_atom_site_auth_comp_id().get(i);
-			@SuppressWarnings("unused")
-			Object me2 = get_atom_site_auth_comp_id().get(i);
-			
-		}
+//        // This data item is an author defined alternative to the value of _atom_site.label_comp_id. This item holds the PDB 3-letter-code residue names
+//		try{
+//			new_g.setPDBName((String) get_atom_site_auth_comp_id().get(i));
+//
+//		}
+//		catch(Exception NullPointerException) {
+//			Object me = get_atom_site_auth_comp_id().get(i);
+//			@SuppressWarnings("unused")
+//			Object me2 = get_atom_site_auth_comp_id().get(i);
+//			
+//		}
         ResidueNumber res_num = new ResidueNumber();
         res_num.setChainId((String) get_atom_site_asym_id().get(i));
         if (get_atom_site_pdbx_PDB_ins_code().get(i)==null){
@@ -289,11 +289,11 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 		this.get_atom_site_asym_id().add(chain_id);
 		// This data item is an author defined alternative to the value of
 		// _atom_site.label_atom_id. This item holds the PDB atom name.
-		this.get_atom_site_auth_atom_id().add(a.getName());
-		// This data item is an author defined alternative to the value of
-		// _atom_site.label_comp_id. This item holds the PDB 3-letter-code
-		// residue names
-		this.get_atom_site_auth_comp_id().add(res_id);
+//		this.get_atom_site_auth_atom_id().add(a.getName());
+//		// This data item is an author defined alternative to the value of
+//		// _atom_site.label_comp_id. This item holds the PDB 3-letter-code
+//		// residue names
+//		this.get_atom_site_auth_comp_id().add(res_id);
 		// This data item is an author defined alternative to the value of
 		// _atom_site.label_seq_id. This item holds the PDB residue number.
 		this.get_atom_site_auth_seq_id().add(res_num.getSeqNum());
@@ -309,7 +309,7 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 		}
 		// This data item identifies the model number in an ensemble of
 		// coordinate data.
-		this.get_atom_site_pdbx_PDB_model_num().add(1);
+//		this.get_atom_site_pdbx_PDB_model_num().add(1);
 		// This data item is a place holder for the tags used by the PDB to
 		// identify coordinate records (e.g. ATOM or HETATM).
 		this.get_atom_site_group_PDB().add(myMap.get(g.getType().name()));
@@ -361,18 +361,18 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 		// The fraction of the atom present at this atom position.
 		this.get_atom_site_occupancy().add(a.getOccupancy());
 		// The net integer charge assigned to this atom.
-		this.get_atom_site_pdbx_formal_charge().add(null);
-		// Optional uncertainties assoicated with coordinate positions,
-		// occupancies and temperature factors.
-		// Cartesian coordinate components describing the position of this
-		// atom site.
-		this.get_atom_site_Cartn_x_esd().add(null);
-		this.get_atom_site_Cartn_y_esd().add(null);
-		this.get_atom_site_Cartn_z_esd().add(null);
-		// Isotropic atomic displacement parameter
-		this.get_atom_site_B_iso_or_equiv_esd().add(null);
-		// The fraction of the atom present at this atom position.
-		this.get_atom_site_occupancy_esd().add(null);
+//		this.get_atom_site_pdbx_formal_charge().add(null);
+//		// Optional uncertainties assoicated with coordinate positions,
+//		// occupancies and temperature factors.
+//		// Cartesian coordinate components describing the position of this
+//		// atom site.
+//		this.get_atom_site_Cartn_x_esd().add(null);
+//		this.get_atom_site_Cartn_y_esd().add(null);
+//		this.get_atom_site_Cartn_z_esd().add(null);
+//		// Isotropic atomic displacement parameter
+//		this.get_atom_site_B_iso_or_equiv_esd().add(null);
+//		// The fraction of the atom present at this atom position.
+//		this.get_atom_site_occupancy_esd().add(null);
 	}
 
 	public void fillDataStruct(String key, Object part) {
@@ -386,21 +386,21 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 			else if (key=="_atom_site_asym_id"){
 			get_atom_site_asym_id().add((String) part);
 			}
-			else if (key=="_atom_site_auth_atom_id"){
-			get_atom_site_auth_atom_id().add((String) part);
-			}
-			else if (key=="_atom_site_auth_comp_id"){
-			get_atom_site_auth_comp_id().add((String) part);
-			}
+//			else if (key=="_atom_site_auth_atom_id"){
+//			get_atom_site_auth_atom_id().add((String) part);
+//			}
+//			else if (key=="_atom_site_auth_comp_id"){
+//			get_atom_site_auth_comp_id().add((String) part);
+//			}
 			else if (key=="_atom_site_auth_seq_id"){
 			get_atom_site_auth_seq_id().add((Integer) part);
 			}
 			else if (key=="_atom_site_pdbx_PDB_ins_code"){
 			get_atom_site_pdbx_PDB_ins_code().add((String) part);
 			}
-			else if (key=="_atom_site_pdbx_PDB_model_num"){
-			get_atom_site_pdbx_PDB_model_num().add((Integer) part);
-			}
+//			else if (key=="_atom_site_pdbx_PDB_model_num"){
+//			get_atom_site_pdbx_PDB_model_num().add((Integer) part);
+//			}
 			else if (key=="_atom_site_group_PDB"){
 			get_atom_site_group_PDB().add((String) part);
 			}
@@ -437,24 +437,24 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 			else if (key=="_atom_site_occupancy"){
 			get_atom_site_occupancy().add((Double) part);
 			}
-			else if (key=="_atom_site_pdbx_formal_charge"){
-			get_atom_site_pdbx_formal_charge().add((Double) part);
-			}
-			else if (key=="_atom_site_Cartn_x_esd"){
-			get_atom_site_Cartn_x_esd().add((Double) part);
-			}
-			else if (key=="_atom_site_Cartn_y_esd"){
-			get_atom_site_Cartn_y_esd().add((Double) part);
-			}
-			else if (key=="_atom_site_Cartn_z_esd"){
-			get_atom_site_Cartn_z_esd().add((Double) part);
-			}
-			else if (key=="_atom_site_B_iso_or_equiv_esd"){
-			get_atom_site_B_iso_or_equiv_esd().add((Double) part);
-			}
-			else if (key=="_atom_site_occupancy_esd"){
-			get_atom_site_occupancy_esd().add((Double) part);
-			}
+//			else if (key=="_atom_site_pdbx_formal_charge"){
+//			get_atom_site_pdbx_formal_charge().add((Double) part);
+//			}
+//			else if (key=="_atom_site_Cartn_x_esd"){
+//			get_atom_site_Cartn_x_esd().add((Double) part);
+//			}
+//			else if (key=="_atom_site_Cartn_y_esd"){
+//			get_atom_site_Cartn_y_esd().add((Double) part);
+//			}
+//			else if (key=="_atom_site_Cartn_z_esd"){
+//			get_atom_site_Cartn_z_esd().add((Double) part);
+//			}
+//			else if (key=="_atom_site_B_iso_or_equiv_esd"){
+//			get_atom_site_B_iso_or_equiv_esd().add((Double) part);
+//			}
+//			else if (key=="_atom_site_occupancy_esd"){
+//			get_atom_site_occupancy_esd().add((Double) part);
+//			}
 	}
 
 	public NoFloatDataStruct findDataAsNoFloatStruct() {
