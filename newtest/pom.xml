@@ -20,6 +20,11 @@
     <artifactId>spark-template-jetbrick</artifactId>
     <version>2.3</version>
 </dependency>
+<!-- 	<dependency>
+			  <groupId>de.bitkings.jbrotli</groupId>
+		  <artifactId>jbrotli</artifactId>
+		  <version>0.2.0-SNAPSHOT</version>
+	  </dependency> -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
@@ -36,6 +41,12 @@
             <version>2.2.4</version>
         </dependency>
           <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.4.4</version>
+        </dependency>
+                  <dependency>
+        
     <groupId>de.undercouch</groupId>
     <artifactId>bson4jackson</artifactId>
     <version>2.5.0</version>
@@ -119,6 +130,11 @@
 		<artifactId>JavaFastPFOR</artifactId>
 		<version>0.1.3</version>
     </dependency>
+<dependency>
+  <groupId>org.msgpack</groupId>
+  <artifactId>jackson-dataformat-msgpack</artifactId>
+  <version>0.7.1</version>
+</dependency>
   </dependencies>
     <build>
         <plugins>

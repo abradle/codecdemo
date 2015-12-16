@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class OrderedDataStructBean implements BioBean {
+public class OrderedDataStructBean extends CoreDataStruct implements BioBean {
 	
 	public Map<Integer, ArrayList<Integer>> getAtomOrder() {
 		return atomOrder;
@@ -32,12 +32,6 @@ public class OrderedDataStructBean implements BioBean {
 	}
 	public void set_atom_site_label_alt_id(List<String> _atom_site_label_alt_id) {
 		this._atom_site_label_alt_id = _atom_site_label_alt_id;
-	}
-	public List<String> get_atom_site_label_entity_id() {
-		return _atom_site_label_entity_id;
-	}
-	public void set_atom_site_label_entity_id(List<String> _atom_site_label_entity_id) {
-		this._atom_site_label_entity_id = _atom_site_label_entity_id;
 	}
 	public List<String> get_atom_site_pdbx_PDB_ins_code() {
 		return _atom_site_pdbx_PDB_ins_code;
@@ -106,7 +100,6 @@ public class OrderedDataStructBean implements BioBean {
 	//  Set - corresponds the unqiue info to the corresponding information
 	private Set<String> resToInfo = new LinkedHashSet<String>();
 	private List<String> _atom_site_label_alt_id= new ArrayList<String>();
-	private List<String> _atom_site_label_entity_id= new ArrayList<String>();
 	private List<String> _atom_site_pdbx_PDB_ins_code = new ArrayList<String>();
 	private List<Integer> _atom_site_pdbx_PDB_model_num = new ArrayList<Integer>();
 	private List<Integer> _atom_site_auth_seq_id = new ArrayList<Integer>();

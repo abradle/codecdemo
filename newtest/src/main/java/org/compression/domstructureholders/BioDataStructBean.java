@@ -1,7 +1,9 @@
 package org.compression.domstructureholders;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BioDataStructBean extends NonAtomDataStruct implements BioBean {
 	// A unique identifier for each atom position_
@@ -82,6 +84,7 @@ public class BioDataStructBean extends NonAtomDataStruct implements BioBean {
 
 	// Cartesian coordinate components describing the position of this
 	// atom site_
+	
 	protected List<Double> _atom_site_Cartn_x = new ArrayList<Double>();
 	protected List<Double> _atom_site_Cartn_y = new ArrayList<Double>();
 	protected List<Double> _atom_site_Cartn_z = new ArrayList<Double>();
@@ -89,7 +92,6 @@ public class BioDataStructBean extends NonAtomDataStruct implements BioBean {
 	protected List<Double> _atom_site_B_iso_or_equiv= new ArrayList<Double>();
 	// The fraction of the atom present at this atom position_
 	protected List<Double> _atom_site_occupancy= new ArrayList<Double>();
-	
 //	// GET RID OF THESE
 //	// The net integer charge assigned to this atom_
 //	protected List<Double> _atom_site_pdbx_formal_charge= new ArrayList<Double>();

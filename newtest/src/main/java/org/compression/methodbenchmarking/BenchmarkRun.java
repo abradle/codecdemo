@@ -40,9 +40,10 @@ public class BenchmarkRun {
 			outMap.put("1", updateMap(br.recipeOne(bdh),origSize));
 			outMap.put("2", updateMap(br.recipeTwo(bdh),origSize));
 			outMap.put("3", updateMap(br.recipeThree(bdh),origSize));
-			outMap.put("4", updateMap(br.recipeFour(bdh),origSize));
-			// Recipe seven is just the original file (gzipped)
-			outMap.put("5", updateMap(br.recipeSeven(bdh),origSize));
+			outMap.put("5", updateMap(br.recipeFivePLUS(bdh),origSize));
+//			outMap.put("3", updateMap(br.recipeDISTS(bdh),origSize));
+//			 Recipe seven is just the original file (gzipped)
+			outMap.put("4", updateMap(br.recipeFive(bdh),origSize));
 			// Recipe eight is just the original file (ungzipped)
 			outMap.put("6", updateMap(br.recipeEight(bdh),origSize));
 			// Recipe nine and ten are just as column data respectively			

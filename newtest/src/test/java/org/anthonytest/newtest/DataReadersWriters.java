@@ -58,8 +58,6 @@ public class DataReadersWriters {
 		DataReader dataRead = new ReadJSON();
 		BioDataStruct newStructure = readWriteFiles(dataWrite, dataRead, "JSON");
 		assertTrue(es.fullStructureTest(bdh.findDataAsBioJava(), newStructure.findDataAsBioJava()));
-
-		
 	}
 	
 	private BioDataStruct readWriteFiles(DataWriter myDataW, DataReader myDataR, String types) throws IOException, JSONException, StructureException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException{

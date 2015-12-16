@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.biojava.nbio.structure.Structure;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -148,4 +147,24 @@ public class NonAtomDataStruct extends CoreDataStruct {
 	// may other structural categories_ This identifier has no meaning
 	// for non-polymer entities_
 	private List<String> _atom_site_label_entity_id= new ArrayList<String>();
+	//
+	private List<List<Integer>> groupList = new ArrayList<List<Integer>>();
+	public Map<Integer, PDBGroup> getGroupMap() {
+		return groupMap;
+	}
+	public void setGroupMap(Map<Integer, PDBGroup> groupMap) {
+		this.groupMap = groupMap;
+	}
+
+
+
+	public List<List<Integer>> getGroupList() {
+		return groupList;
+	}
+	public void setGroupList(List<List<Integer>> groupList) {
+		this.groupList = groupList;
+	}
+
+
+	protected Map<Integer, PDBGroup> groupMap = new HashMap<Integer, PDBGroup>();
 }

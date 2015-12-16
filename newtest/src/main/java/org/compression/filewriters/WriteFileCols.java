@@ -10,8 +10,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -26,10 +28,23 @@ public class WriteFileCols extends AbstractDataWriter implements DataWriter {
 		ObjectMapper m = new ObjectMapper();
 		Map<String,Object> hmap = m.convertValue(bioBean, Map.class);
 		//System.out.println(hmap);
-		// REMOVE THIS IF IT'S IN THERE
-		if(hmap.containsKey("pdbCode")==true){
-			hmap.remove("pdbCode");
+		// REMOVE ALL NONE 
+		String[] myArray = hmap.keySet().stream().toArray(String[]::new);
+		for(String k: myArray){
+			if(k.startsWith("_")!=true){
+				hmap.remove(k);
+			}
 		}
+//		if(hmap.containsKey("pdbCode")==true){
+//			hmap.remove("pdbCode");
+//		}
+//		if(hmap.containsKey("numModels")==true){
+//			hmap.remove("numModels");
+//		}
+//		if(hmap.containsKey("groupMap")==true){
+//			hmap.remove("groupMap");
+//		}
+		
 		String pdb_code = my_struct.findStructureCode();
 		OutputStream outStream = new ByteArrayOutputStream();
 //		PrintWriter writer = new PrintWriter("NEW_FILE_NAME_CHANGEME");
@@ -65,6 +80,12 @@ public class WriteFileCols extends AbstractDataWriter implements DataWriter {
 		Map<String,Object> hmap = m.convertValue(bioBean, Map.class);	
 		if(hmap.containsKey("pdbCode")==true){
 			hmap.remove("pdbCode");
+		}
+		if(hmap.containsKey("groupMap")==true){
+			hmap.remove("groupMap");
+		}
+		if(hmap.containsKey("numModels")==true){
+			hmap.remove("numModels");
 		}
 		for (Entry<String,Object> myEntry : hmap.entrySet()) {
 			outStream.writeUTF(myEntry.getKey());

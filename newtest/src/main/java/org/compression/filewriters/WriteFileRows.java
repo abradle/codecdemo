@@ -20,7 +20,12 @@ public class WriteFileRows extends AbstractDataWriter implements DataWriter {
 		Map<String,Object> hmap = m.convertValue(bioBean, Map.class);
 		OutputStream outStream = new ByteArrayOutputStream();
 		String pdb_code = my_struct.findStructureCode();
-		hmap.remove("pdbCode");
+		String[] myArray = hmap.keySet().stream().toArray(String[]::new);
+		for(String k: myArray){
+			if(k.startsWith("_")!=true){
+				hmap.remove(k);
+			}
+		}
 		try {
 			// First we write down all the columns
 			outStream.write((pdb_code + "\n").getBytes());
@@ -37,7 +42,6 @@ public class WriteFileRows extends AbstractDataWriter implements DataWriter {
 						outStream.write(String.valueOf(((ArrayList) hmap.get(key)).get(i)).getBytes());
 						outStream.write(" ".getBytes());
 					} catch (Exception IndexOutOfBoundsException) {
-
 					}
 
 				}

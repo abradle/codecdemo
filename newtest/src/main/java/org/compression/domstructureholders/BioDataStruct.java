@@ -3,19 +3,26 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.biojava.nbio.structure.AminoAcidImpl;
 import org.biojava.nbio.structure.Atom;
 import org.biojava.nbio.structure.AtomImpl;
+import org.biojava.nbio.structure.Bond;
+import org.biojava.nbio.structure.Calc;
 import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.ChainImpl;
 import org.biojava.nbio.structure.Element;
 import org.biojava.nbio.structure.Group;
+import org.biojava.nbio.structure.GroupType;
 import org.biojava.nbio.structure.HetatomImpl;
 import org.biojava.nbio.structure.NucleotideImpl;
 import org.biojava.nbio.structure.ResidueNumber;
@@ -24,10 +31,20 @@ import org.biojava.nbio.structure.StructureException;
 import org.biojava.nbio.structure.StructureIO;
 import org.biojava.nbio.structure.StructureImpl;
 import org.biojava.nbio.structure.align.util.AtomCache;
+import org.biojava.nbio.structure.io.FileParsingParameters;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 public class BioDataStruct extends BioDataStructBean implements CoreSingleStructure {
+	// Function to update the BioDataStruct for a given 
+    private static final Map<String, String> myMap;
+    static {
+    	Map<String, String> aMap = new HashMap<String, String>();
+    	aMap.put("hetatm", "HETATM");
+    	aMap.put("amino", "ATOM");
+    	aMap.put("nucleotide", "ATOM");
+        myMap = Collections.unmodifiableMap(aMap);
+    }
 
 	public BioDataStruct() {
 	}
@@ -43,12 +60,7 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 		BeanUtils bu = new BeanUtils();
 		bu.copyProperties(newData, this);
 		return newData;
-	}
-
-//	public JSONObject findDataAsJSON() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-//		Map<String,Object> hMap = findDataAsHashMap();
-//		return new JSONObject(hMap);
-//	}
+	}	
 
 	
 	private Structure getBioJavaFromBioDS() {
@@ -243,42 +255,143 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 	private BioDataStruct getBioDataStructFromPDBId(String input_id) throws IOException, StructureException {
 		AtomCache cache = new AtomCache();
 		cache.setUseMmCif(true);
+		cache.setAutoFetch(false);
+		FileParsingParameters params = cache.getFileParsingParams();
+		params.setLoadChemCompInfo(true);
+		params.setCreateAtomBonds(true);
+		StructureIO.setAtomCache(cache);
 		Structure my_struct = StructureIO.getStructure(input_id);
 		return getBioDataStructFromBioJava(my_struct);
 		// and let's count how many chains are in this structure.
 	}
 	
 	private BioDataStruct getBioDataStructFromBioJava(Structure my_struct){
-		// A now let's loop over all the atom site record
-		List<Chain> chains = my_struct.getChains();
-		// Get the number of chains
-		System.out.println(" # chains: " + chains.size());
-		// Set the PDB Code
-		this.setPdbCode(my_struct.getPDBCode());
-		// Take the atomic information and place in a Hashmap
-		for (Chain c : chains) {
-			// Get the groups
-			String chain_id = c.getChainID();
-			for (Group g : c.getAtomGroups()) {
-				// Now loop through anf get the coords
-				String res_id = g.getPDBName();
-				ResidueNumber res_num = g.getResidueNumber();
-				for (Atom a : g.getAtoms()) {
-					updateStruct(a, chain_id, res_id, res_num, c, g);
+		// Get the number of models
+		Integer numModels = my_struct.nrModels();
+		// 
+		List<List<Integer>> thisList= new ArrayList<List<Integer>>();
+		this.setNumModels(numModels);
+		Map<Integer, PDBGroup> thisMap = new HashMap<Integer, PDBGroup>();
+		for (int i=0; i<numModels; i++){
+			// Now let's loop over all the atom site record
+			List<Chain> chains = my_struct.getModel(i);
+			// Get the number of chains
+			System.out.println(" # chains: " + chains.size());
+			// Get the residue list
+			// Set the PDB Code
+			this.setPdbCode(my_struct.getPDBCode());
+			// Take the atomic information and place in a Hashmap
+			for (Chain c : chains) {
+				// 
+				List<Integer> newChainList = new ArrayList<Integer>();
+				thisList.add(newChainList);
+				// Get the groups
+				String chain_id = c.getChainID();
+				for (Group g : c.getAtomGroups()) {
+					// Now loop through anf get the coords
+					String res_id = g.getPDBName();
+					// Get the atomic info required - this is the unique identifier of the group 
+					List<String> atomInfo = getAtomInfo(g);
+					int hashCode = getHashFromStringList(atomInfo);
+					newChainList.add(hashCode);
+					// If we need this new information 
+					if (thisMap.containsKey(hashCode)==false){
+						PDBGroup outGroup = new PDBGroup();
+						outGroup.setAtomInfo(atomInfo);
+						// Now get the bond list (lengths, orders and indices)
+						createBondList(g,outGroup);
+						thisMap.put(hashCode, outGroup);
+					}
+					// 
+					ResidueNumber res_num = g.getResidueNumber();
+					for (Atom a : g.getAtoms()) {
+						updateStruct(a, chain_id, res_id, res_num, c, g);
+					}
+	
 				}
-
 			}
 		}
+		this.setGroupList(thisList);
+		this.setGroupMap(thisMap);
 		return this;
 	}
+
+	private int getHashFromStringList(List<String> strings){
+		int prime = 31;
+		int result = 1;
+		for( String s : strings )
+		{
+		    result = result * prime + s.hashCode();
+		}
+		return result;
+	}
+	private List<String> getAtomInfo(Group g){
+		int numAtoms = g.getAtoms().size();
+		int arraySize = numAtoms*2+2;
+		List<String> outString = new ArrayList<String>(arraySize);
+		outString.add(g.getPDBName());
+		GroupType gType = g.getType();
+		// A string indicating if it is HETARM or ATOM
+		int i = 0;
+		String gS = gType.toString();
+		String gss = myMap.get(gS);
+		outString.add(gss);
+		for (Atom a: g.getAtoms()){
+			outString.add(a.getElement().toString());
+			i+=1;
+		}
+		i = 0;
+		for (Atom a: g.getAtoms()){
+			outString.add(a.getName());
+			i+=1;
+		}
+		return outString;
+	}
+	private void createBondList(Group g, PDBGroup outGroup) {
+		List<Atom> atoms = g.getAtoms();
+		int n = atoms.size();
+		if (n == 0) {
+			System.out.println("creating empty bond list");
+		}
+		int[] bondList = new int[n];
+		int[] bondDist = new int[n];
+		int[] bondOrder = new int[n];
+
+		Arrays.fill(bondList, -1);
+
+		for (int i = 0; i < n; i++) {
+			Atom a = atoms.get(i);
+			for (Bond b: a.getBonds()) {
+				Atom other = b.getOther(a);
+				int index = atoms.indexOf(other);
+				int order = b.getBondOrder();
+				if (index == -1) {
+					continue;
+				}
+				if (index > i && bondList[index] == -1) {
+					//
+						bondList[index] = i;
+						bondDist[index] = (int)Math.round(Calc.getDistance(a, other)*1000);
+						bondOrder[index] = order;
+				}
+			}
+		}
+		outGroup.setBondOrders(intLToList(bondOrder));
+		outGroup.setBondLengths(intLToList(bondDist));
+		outGroup.setBondIndices (intLToList(bondList));
+	}
 	
+	private List<Integer> intLToList(int[] ints){
+	    List<Integer> intList = new ArrayList<Integer>();
+	    for (int index = 0; index < ints.length; index++)
+	    {
+	        intList.add(ints[index]);
+	    }
+	    return intList;
+	}
 	private void updateStruct(Atom a, String chain_id, String res_id,
 			ResidueNumber res_num, Chain c, Group g) {
-		// Function to update the BioDataStruct for a given 
-		Map<String, String> myMap = new HashMap<String, String>();
-		myMap.put("HETATM", "HETATM");
-		myMap.put("AMINOACID", "ATOM");
-		myMap.put("NUCELOTIED", "ATOM");
+
 		this.get_atom_site_id().add(a.getPDBserial());
 		// Atom symbol
 		Element ele = a.getElement();
@@ -305,14 +418,13 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 		}
 		else{
 			this.get_atom_site_pdbx_PDB_ins_code().add(me.toString());
-
 		}
 		// This data item identifies the model number in an ensemble of
 		// coordinate data.
 //		this.get_atom_site_pdbx_PDB_model_num().add(1);
 		// This data item is a place holder for the tags used by the PDB to
 		// identify coordinate records (e.g. ATOM or HETATM).
-		this.get_atom_site_group_PDB().add(myMap.get(g.getType().name()));
+		this.get_atom_site_group_PDB().add(myMap.get(g.getType().toString()));
 		// This item is a uniquely identifies for each alternative site for
 		// this atom position.
 		if (a.getAltLoc()==" ".charAt(0)){
@@ -343,7 +455,7 @@ public class BioDataStruct extends BioDataStructBean implements CoreSingleStruct
 		// category. This item is used to identify chemically distinct
 		// portions of the molecular structure (e.g. polymer chains,
 		// ligands, solvent).
-		this.get_atom_site_label_entity_id().add(myMap.get(g.getType()));
+		this.get_atom_site_label_entity_id().add(myMap.get(g.getType().toString()));
 		// This data item is a reference to _entity_poly_seq.num defined in
 		// the ENTITY_POLY_SEQ category. This item is used to maintain the
 		// correspondence between the chemical sequence of a polymeric

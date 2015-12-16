@@ -1,9 +1,11 @@
 package org.compression.helpers;
 
+import org.biojava.nbio.structure.io.FileParsingParameters;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,26 +13,29 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.genetics.OrderedCrossover;
 import org.apache.parquet.it.unimi.dsi.fastutil.Hash;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SaveMode;
@@ -53,6 +58,8 @@ import org.compression.intarraydecompressors.RemoveDeltas;
 import org.compression.intarraydecompressors.RunLengthDecode;
 import org.compression.stringarraycompressors.RunLengthEncodeString;
 import org.compression.stringarraycompressors.StringArrayCompressor;
+import org.msgpack.jackson.dataformat.MessagePackFactory;
+import org.omg.CORBA.DataInputStream;
 import org.compression.filecompressors.FileCompressor;
 import org.compression.filedecompressors.Bzip2DeCompress;
 import org.compression.filedecompressors.FileDeCompressor;
@@ -63,22 +70,34 @@ import org.compression.filewriters.DataWriter;
 import org.compression.filewriters.WriteFileBSON;
 import org.compression.filewriters.WriteFileCols;
 import org.compression.filewriters.WriteFileJSON;
+import org.compression.arrayprofilers.Intarrayprofilers;
 import org.compression.biocompressor.BioCompressor;
+import org.compression.biocompressor.CompressDists;
 import org.compression.biocompressor.CompressDoubles;
 import org.compression.biocompressor.CompressOrderAtoms;
 import org.compression.biocompressor.CompressResidues;
 import org.compression.biodecompression.BioDeCompressor;
 import org.compression.biodecompression.DeCompressDoubles;
 import org.compression.biodecompression.DeCompressResidues;
+import org.compression.domstructureholders.BioBean;
 import org.compression.domstructureholders.BioDataStruct;
 import org.compression.domstructureholders.CoreSingleStructure;
+import org.compression.domstructureholders.NoFloatDataStruct;
 import org.compression.domstructureholders.OrderedDataStruct;
+import org.compression.domstructureholders.PDBGroup;
 import org.compression.domstructureholders.ResidueGraphDataStruct;
+import org.compression.filecompressors.BrotliCompress;
 import org.compression.filecompressors.Bzip2Compress;
 import org.compression.filecompressors.GzipCompress;
 import org.compression.filecompressors.SquashBenchmark;
 import org.rcsb.spark.util.SparkUtils;
+//import org.scijava.nativelib.NativeLoader;
 
+import com.fasterxml.jackson.databind.MappingJsonFactory;
+
+//import de.bitkings.jbrotli.Brotli;
+//import de.bitkings.jbrotli.BrotliCompressor;
+//import de.bitkings.jbrotli.BrotliDeCompressor;
 import me.lemire.integercompression.Composition;
 import me.lemire.integercompression.FastPFOR;
 import me.lemire.integercompression.IntWrapper;
@@ -86,232 +105,306 @@ import me.lemire.integercompression.IntegerCODEC;
 import me.lemire.integercompression.VariableByte;
 import scala.util.parsing.json.JSON;
 import org.biojava.nbio.structure.align.model.AFPChain;
+import org.biojava.nbio.structure.rcsb.GetRepresentatives;
 /**
-	 * This class finds an mmCIF file and saves it as a csv file 
-	 * 
-	 * @author Anthony Bradley
-	 */
-	public class CompressmmCIF {
+ * This class finds an mmCIF file and saves it as a csv file 
+ * 
+ * @author Anthony Bradley
+ */
+public class CompressmmCIF {
 
-		public static void main(String[] args) throws IOException, StructureException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, InterruptedException {
-			BioCompressor cd = new CompressDoubles();
-			BioDataStruct bdh = new BioDataStruct("1ffk");
-			CoreSingleStructure outStruct = cd.compresStructure(bdh);
-			WriteFileBSON dataWrite = new WriteFileBSON();
-			dataWrite.writeBinaryFile("TEST_BSON",outStruct);
-			SquashBenchmark sb = new SquashBenchmark();
-			sb.benchmarkCompression("TEST_BSON");
-			WriteFileJSON dataWriteJSON = new WriteFileJSON();
-			dataWriteJSON.writeFile("TEST_JSON",outStruct);
-			sb.benchmarkCompression("TEST_JSON");
-//			dataWrite.writeFile("OUT.TEST.COLS", bdh);
-//			
-//			BioDeCompressor bcd = new DeCompressDoubles();
-//			BioCompressor newCd = new CompressResidues();
-//			BioDeCompressor newBcd = new DeCompressResidues();
-//			// Remove doubles
-//			CoreSingleStructure outStruct = cd.compresStructure(bdh);
-//			dataWrite.writeFile("OUT.TEST.COLS.TWO", outStruct);
-//			// Remove the duplicated residue info
-////			ResidueGraphDataStruct inStruct = (ResidueGraphDataStruct) newCd.compresStructure(outStruct);
-////			dataWrite.writeFile("OUT.TEST.COLS.THREE", inStruct);
-//
-//			// TEST THIS OUT
-//			BioCompressor newOrderAtoms = new CompressOrderAtoms();
-//			OrderedDataStruct inStruct = (OrderedDataStruct) newOrderAtoms.compresStructure(outStruct);
-//			dataWrite.writeFile("OUT.TEST.COLS.THREE_ORDERED", inStruct);
-//			
-////			inStruct = orderedStruct;
-//			
-//			IntArrayCompressor intArrCompTwo = new AddMinVal();
-//			IntArrayCompressor intArrComp = new FindDeltas();
-//			IntArrayCompressor intArrCompThree = new PFORCompress();
-//			IntArrayCompressor intArrCompFour = new RunLengthEncode();
-//			IntArrayDeCompressor intArrDeCompFour = new RunLengthDecode();
-//			IntArrayDeCompressor intArrDeComp = new RemoveDeltas();
-//			// Now compress the integer arrays
-//			ArrayList<Integer> cartnX = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_xInt();
-//			ArrayList<Integer> cartnY = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_yInt();
-//			ArrayList<Integer> cartnZ = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_zInt();
-//
-//			inStruct.set_atom_site_Cartn_xInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnX)));
-//			inStruct.set_atom_site_Cartn_yInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnY)));
-//			inStruct.set_atom_site_Cartn_zInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnZ)));
-//
-//			// Now the occupancy and BFACTOR
-//			inStruct.set_atom_site_B_iso_or_equivInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_B_iso_or_equivInt())));
-//			inStruct.set_atom_site_occupancyInt(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_occupancyInt())));
-//			
-//			// Now the sequential numbers
-//			inStruct.set_atom_site_pdbx_PDB_model_num(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_pdbx_PDB_model_num())));
-//			inStruct.set_atom_site_auth_seq_id(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_auth_seq_id())));
-//			inStruct.set_atom_site_label_entity_poly_seq_num(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_label_entity_poly_seq_num())));			
-//			inStruct.set_atom_site_id(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_id())));
-//			// NOW THE STRINGS
-//			StringArrayCompressor stringRunEncode = new RunLengthEncodeString();
-//			inStruct.set_atom_site_label_alt_id(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_label_alt_id()));
-//			inStruct.set_atom_site_label_entity_id(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_label_entity_id()));
-//			inStruct.set_atom_site_pdbx_PDB_ins_code(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_pdbx_PDB_ins_code()));
-//			dataWrite.writeFile("OUT.TEST.COLS.FOUR", inStruct);
-//			SquashBenchmark sb = new SquashBenchmark();
-//			Map<String, Double> myMap = sb.benchmarkCompression("OUT.TEST.COLS.FOUR");
-//			System.out.println(myMap);
 
-//			BioDataStruct newStructure = (BioDataStruct) myDataR.readFile("OUT.TEST."+types);
-//			BioDataStruct newStructure = readWriteFiles(dataWrite, dataRead, "COLS");
-//			assertTrue(es.fullStructureTest(bdh.getDataAsBioJava(), newStructure.getDataAsBioJava()));
-//			DataReaders dr = new DataReaders();
-//			BasicDataHolder bdh = new BasicDataHolder("1QMZ");
-//			System.out.println(bdh.getDataAsBioDataStruct().getPdbCode());
-//			DataWriters dw = new DataWriters();
-//
-//			WriteFileRows wfr = dw.new WriteFileRows();
-//			wfr.writeFile("OUT.ROWS", bdh);
-//			WriteFileJSON wfj = dw.new WriteFileJSON();
-//			wfj.writeFile("OUT.JSON", bdh);
-//			
-//
-//			WriteFileCols wfc = dw.new WriteFileCols();
-//			wfc.writeFile("OUT.COLS", bdh);
-//			ReadCols rfc = dr.new ReadCols();
-//			BasicDataHolder rfc_structure = (BasicDataHolder) rfc.readFile("OUT.COLS");
-//			
-//
-//
-//			FileCompressor bzComp = new Bzip2Compress();
-//			FileDeCompressor bzDec = new Bzip2DeCompress();
-//			bzComp.compressStream(wfj.writeInStream(bdh), "OUT.JSON");		
-//			ReadJSON rfj = dr.new ReadJSON();
-//			BasicDataHolder rfjb_structure = (BasicDataHolder) rfj.readStream(bzDec.decompressFile("OUT.JSON.bzip2"));
-//			EquateStructures es = new EquateStructures();
-//			es.fullStructureTest(bdh.getDataAsBioJava(), rfjb_structure.getDataAsBioJava());
-//			String input_id = "1QMZ";
-//			System.out.println(input_id);
-//			BasicDataHolder bdh = new BasicDataHolder(input_id);
-//			DataWriters dw = new DataWriters();
-//			DataReaders dr = new DataReaders();
-//			FileCompressors fc = new FileCompressors();
-//			FileDecompressors fd = new FileDecompressors();
-//			// NOW TRY A ROUNDRIP ON ALL THREE FORMATS
-//			WriteFileJSON wfj = dw.new WriteFileJSON();
-//			WriteFileCols wfc = dw.new WriteFileCols();
-//			WriteFileRows wfr = dw.new WriteFileRows();
-//			
-//			// NOW THE COMPRESSIORS
-//			GzipCompress gzp = fc.new GzipCompress();
-//			Bzip2Compress bzp = fc.new Bzip2Compress();
-//			// NOW THE DECOMPRESSORS
-//			GzipDeCompress gzd = fd.new GzipDeCompress();
-//			Bzip2DeCompress gzb = fd.new Bzip2DeCompress(); 
-//					
-//			
-//			// DO THE WRITING
-//			wfj.writeFile("OUT.JSON", bdh);
-//			wfc.writeFile("OUT.COLS", bdh);
-//			wfr.writeFile("OUT.ROWS", bdh);
+
+	public static void main(String[] args) throws IOException, StructureException, JSONException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, InterruptedException {
+
+
+//		Map<String,byte[]> totMap = new HashMap<String,byte[]>();
+//		TrialClass tc = new TrialClass();
+//		Properties sysProps = System.getProperties();
+//		sysProps.setProperty("PDB_DIR", "/Users/anthony/PDB_CACHE");
+//		// Now fill with a 1000 PDB codes
+//		int counter = 0;
+//		int length = 0;
+//		int maxStructs = 2;
+//		long startTime = System.nanoTime();
+//		SortedSet<String> thisSet = GetRepresentatives.getAll();
+//		List<String> thisList = new ArrayList<String>(thisSet);
+//		Collections.shuffle(thisList);
+//		List<String> myList = thisList.subList(0, maxStructs);
+//		/// WE WANT AN OVERALL DICT OF THE CORE RESIDUES -> THIS CAN BE COLLECTED AND HELD AS A SEPERARE OBJECT
+//		for(String pdbId: myList){
+//			byte[] thisByte =  tc.compPDB(pdbId);
+//			System.out.println(counter+":  "+pdbId);
+//			length += thisByte.length;
+//			totMap.put(pdbId, thisByte);
+//		}
+//		// NOW PRINT THE LENGTH
+//		System.out.println("TOTAL LENGTH: " + length);
+//		System.out.println("NUMBER OF STRUCTURES: " + maxStructs);
+//		long endTime = System.nanoTime();
+//		long duration = (endTime - startTime);
+//		System.out.println("TIME: " + duration/1000000000.0);
+//		// NOW WRITE THE HASHMAP AS BINARY DATA
+//		DataOutputStream outStream = new DataOutputStream(new FileOutputStream("OUT_BIN"));
+//		for(String key: myList){
+//			// First four chars are the PDB code
+//			outStream.writeUTF(key);
+//			// Next is an int of the length
+//			outStream.writeInt(totMap.get(key).length);
+//			// Finally the byte array of the data
+//			outStream.write(totMap.get(key));
+//		}
+//		outStream.close();
 		
-//			// Sequence of Compressions
-//			BasicDataHolder bdh = new BasicDataHolder(input_id);
-			/////// THIS IS A DEFINED RECIPE - BIO COMES BEFORE ARRAY TOO
-//			bioCompOne(bdh);
-//			bioCompTwo(bdh);
-//			bioCompThree(bdh);
-//			arrayCompOne(bdh);
-//			arrayCompTwo(bdh);
-//			arrayCompThree(bdh);
-//			gzp.compressStream(wfj.writeInStream(bdh), "OUT.JSON");
-			/////// END OF RECIPE
-//			// Now get the structure back
-//			BasicDataHolder bdh_ret = (BasicDataHolder) rfj.readStream(gzb.decompressFile("OUT.JSON.bzip2"));
-//			// And now decompressions
-//			arrayDeCompThree(bdh_ret);
-//			arrayDeCompTwo(bdh_ret);
-//			arrayDeCompOne(bdh_ret);
-//			bioCompThree(bdh_ret);			
-//			bioCompTwo(bdh_ret);
-//			bioCompOne(bdh_ret);
-//			// bdh should equal bdh_ret
-//			
-//			// DO THE WRITING OF GZIPS
-//			gzp.compressStream(wfj.writeInStream(bdh), "OUT.JSON");
-//			gzp.compressStream(wfc.writeInStream(bdh), "OUT.COLS");
-//			gzp.compressStream(wfr.writeInStream(bdh), "OUT.ROWS");
-//			
-//			// DO THE WRITING OF BZIP2
-//			bzp.compressStream(wfj.writeInStream(bdh), "OUT.JSON");
-//			bzp.compressStream(wfc.writeInStream(bdh), "OUT.COLS");
-//			bzp.compressStream(wfr.writeInStream(bdh),"OUT.ROWS");
-//					
-//			// SET UP THE READERS
-//			ReadJSON rfj = dr.new ReadJSON();
-//			ReadRows rfr = dr.new ReadRows();
-//			ReadCols rfc = dr.new ReadCols();
-//			
-//			BasicDataHolder rfjb_structure = (BasicDataHolder) rfj.readStream(gzb.decompressFile("OUT.JSON.bzip2"));
-//			System.out.println("JSONBZ" + rfjb_structure.getStructureCode());			
-//			// NOW DO THE READING OF FILES
-//			BasicDataHolder rfj_structure = (BasicDataHolder) rfj.readFile("OUT.JSON");
-//			System.out.println("JSON" + rfj_structure.getStructureCode());			
-//			BasicDataHolder rfc_structure = (BasicDataHolder) rfc.readFile("OUT.COLS");
-//			System.out.println("COLS" + rfc_structure.getStructureCode());		
-//			BasicDataHolder rfr_structure = (BasicDataHolder) rfr.readFile("OUT.ROWS");
-//			System.out.println("ROWS" + rfr_structure.getStructureCode());	
-//			
-//			
-//			
-//			
-//			
-//			//BasicDataHolder tmp_sddtruct = new BasicDataHolder(input_id);
-//			System.out.println(rfj_structure.getDataAsHashMap());
-//			EquateStructures es = new EquateStructures();
-//			SimpleTest st = es.new SimpleTest(rfj_structure);
-//			System.out.println("SIMPLE TEST "+st.structuresAreSame());
-//			AtomsTest at = es.new AtomsTest(rfj_structure);
-//			System.out.println("ATOM TEST "+at.structuresAreSame());
-//			TypeTest tt = es.new TypeTest(rfj_structure);
-//			System.out.println("TYPE TEST "+tt.structuresAreSame());			
-////			// Roundtrip the structure -> e.g. check the hashmap works
-//			rountrip_structure(input_id);
-//			System.out.println("NOW CHECKING IF ROW WRITING WORKS");
-//			// Now check that the write rows and readrows works
-//			HashMap<String, ArrayList> hmap = getHmapOfmmcif(input_id);
-//			writeFileRows("ME.TEST", hmap);
-//			HashMap<String, ArrayList> new_hmap = readFileRows("ME.TEST");
-//			// Now test this hashmap against the original id
-//			System.out.println(compare_hashmap_atoms_vs_pdb(input_id, new_hmap));
-//			System.out.println("NOW CHECKING IF COLUMN WRITING WORKS");
-//			writeFileCols("ME.COL.TEST", hmap);
-//			HashMap<String, ArrayList> col_hmap = readFileCols("ME.COL.TEST");
-//			// Now test this hashmap against the original id
-//			System.out.println(compare_hashmap_atoms_vs_pdb(input_id, col_hmap));
-//			// NOW CHECK IF THE DELTAS WORK
-//			updateDeltas(hmap);
-//			writeFileCols("ME.DELTA.TEST", hmap);
-//			HashMap<String, ArrayList> row_delta_hmap = readFileCols("ME.DELTA.TEST");
-//			removeDeltas(row_delta_hmap);
-//			// Now test this hashmap against the original id
-//			// ROWS DOESN'T MAKE ANY SENSE NOW IF WE DO THIS
-//			//writeFileRows("ME.DELTA_UNDONE.TEST", row_delta_hmap);
-//			System.out.println(compare_hashmap_atoms_vs_pdb(input_id, row_delta_hmap));
-//			
-//			// NOW LET'S SEE HOW
-			
-			
-			
-//			System.out.println("NOW CHECKING IF COLUMN WRITING WORKS");
-//			writeFileCols("ME.COL.TEST", hmap);
-//			HashMap<String, ArrayList> col_delta_hmap = readFileCols("ME.COL.TEST");
-//			System.out.println(compare_hashmap_atoms_vs_pdb(input_id, col_delta_hmap));
-			// THEN DO THE GZIP COMPRESSION / DECOMPRESSION
-			
-			// FINALLY DO THE PARQUET VERSIONS
-			
-			// TURN INTO TESTS AND CLEAN UP THE CLASSES
-			
-			// ADD MORE TESTS IN THE COMPARISON -> MAKE A TEST TO COMPARE TWO BIOJAVA STRUCTURES FOR EQUIVALENCE -> REPORT ON LEVEL OF EQUIEVALENCE
-			
-		}
-	}		
+		// NOW READ IT BACK INTO THE HASHMAP
+		InputStream inStream = new  java.io.DataInputStream(new FileInputStream("OUT_BIN"));
+		// First read the PDB file
+		// Get the code
+		byte[] newStr = new byte[8];
+		inStream.read(newStr, 0, 8);
+		String str = new String(newStr, StandardCharsets.UTF_8);
+		System.out.println(str);
+		
+		//			
+		//				try {
+		//				TrialClass tc2 = new TrialClass();
+		//				totMap.put("4cup", tc2.compPDB("4cup"));
+		//				} catch ( Exception e){
+		//					e.printStackTrace();
+		//				}
+		//			
+		//			System.out.println("Done");
+		//			System.exit(0);]
+		//			NativeLoader.loadLibrary("brotli");
+
+		//			TrialClass tc = new TrialClass();
+		//			tc.brotliSuccess();
+		//			tc.brotliTest();
+
+
+		//			NoFloatDataStruct outStruct = (NoFloatDataStruct) cd.compresStructure(bdh);
+		//			float olderBytes = ia.profileIntArray(outStruct.get_atom_site_Cartn_zInt());
+		//			float oldBytes = ia.profileIntArray(intArrComp.compressIntArray((ArrayList<Integer>) outStruct.get_atom_site_Cartn_zInt()));
+		//			CompressDists cdd = new CompressDists();
+		//			NoFloatDataStruct newStruct = (NoFloatDataStruct) cdd.compresStructure(outStruct);
+		//			float newBytes = ia.profileIntArray(intArrComp.compressIntArray((ArrayList<Integer>) newStruct.get_atom_site_Cartn_zInt()));
+		//			System.out.println("COMPRESSION: "+((1.0-newBytes/oldBytes)*100.0)+" %");
+
+		//			System.out.println(outLength);
+		//			BrotliDeCompressor decompressor = new BrotliDeCompressor();
+		//			decompressor.deCompress(compressedBuf, decompressedBuf);
+		//			String newString = new String(decompressedBuf);
+		//			System.out.println(newString.equals(inString));
+		//			System.out.println(newString);
+		//			System.out.println(inString);
+		//			dataWrite.writeFile("OUT.TEST.COLS", bdh);
+		//			
+		//			BioDeCompressor bcd = new DeCompressDoubles();
+		//			BioCompressor newCd = new CompressResidues();
+		//			BioDeCompressor newBcd = new DeCompressResidues();
+		//			// Remove doubles
+		//			CoreSingleStructure outStruct = cd.compresStructure(bdh);
+		//			dataWrite.writeFile("OUT.TEST.COLS.TWO", outStruct);
+		//			// Remove the duplicated residue info
+		////			ResidueGraphDataStruct inStruct = (ResidueGraphDataStruct) newCd.compresStructure(outStruct);
+		////			dataWrite.writeFile("OUT.TEST.COLS.THREE", inStruct);
+		//
+		//			// TEST THIS OUT
+		//			BioCompressor newOrderAtoms = new CompressOrderAtoms();
+		//			OrderedDataStruct inStruct = (OrderedDataStruct) newOrderAtoms.compresStructure(outStruct);
+		//			dataWrite.writeFile("OUT.TEST.COLS.THREE_ORDERED", inStruct);
+		//			
+		////			inStruct = orderedStruct;
+		//			
+		//			IntArrayCompressor intArrCompTwo = new AddMinVal();
+		//			IntArrayCompressor intArrComp = new FindDeltas();
+		//			IntArrayCompressor intArrCompThree = new PFORCompress();
+		//			IntArrayCompressor intArrCompFour = new RunLengthEncode();
+		//			IntArrayDeCompressor intArrDeCompFour = new RunLengthDecode();
+		//			IntArrayDeCompressor intArrDeComp = new RemoveDeltas();
+		//			// Now compress the integer arrays
+		//			ArrayList<Integer> cartnX = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_xInt();
+		//			ArrayList<Integer> cartnY = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_yInt();
+		//			ArrayList<Integer> cartnZ = (ArrayList<Integer>) inStruct.get_atom_site_Cartn_zInt();
+		//
+		//			inStruct.set_atom_site_Cartn_xInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnX)));
+		//			inStruct.set_atom_site_Cartn_yInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnY)));
+		//			inStruct.set_atom_site_Cartn_zInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray(cartnZ)));
+		//
+		//			// Now the occupancy and BFACTOR
+		//			inStruct.set_atom_site_B_iso_or_equivInt(intArrCompThree.compressIntArray(intArrCompTwo.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_B_iso_or_equivInt())));
+		//			inStruct.set_atom_site_occupancyInt(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_occupancyInt())));
+		//			
+		//			// Now the sequential numbers
+		//			inStruct.set_atom_site_pdbx_PDB_model_num(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_pdbx_PDB_model_num())));
+		//			inStruct.set_atom_site_auth_seq_id(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_auth_seq_id())));
+		//			inStruct.set_atom_site_label_entity_poly_seq_num(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_label_entity_poly_seq_num())));			
+		//			inStruct.set_atom_site_id(intArrCompFour.compressIntArray(intArrComp.compressIntArray((ArrayList<Integer>) inStruct.get_atom_site_id())));
+		//			// NOW THE STRINGS
+		//			StringArrayCompressor stringRunEncode = new RunLengthEncodeString();
+		//			inStruct.set_atom_site_label_alt_id(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_label_alt_id()));
+		//			inStruct.set_atom_site_label_entity_id(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_label_entity_id()));
+		//			inStruct.set_atom_site_pdbx_PDB_ins_code(stringRunEncode.compressStringArray((ArrayList<String>) inStruct.get_atom_site_pdbx_PDB_ins_code()));
+		//			dataWrite.writeFile("OUT.TEST.COLS.FOUR", inStruct);
+		//			SquashBenchmark sb = new SquashBenchmark();
+		//			Map<String, Double> myMap = sb.benchmarkCompression("OUT.TEST.COLS.FOUR");
+		//			System.out.println(myMap);
+
+		//			BioDataStruct newStructure = (BioDataStruct) myDataR.readFile("OUT.TEST."+types);
+		//			BioDataStruct newStructure = readWriteFiles(dataWrite, dataRead, "COLS");
+		//			assertTrue(es.fullStructureTest(bdh.getDataAsBioJava(), newStructure.getDataAsBioJava()));
+		////			DataReaders dr = new DataReaders();
+		//			BasicDataHolder bdh = new BasicDataHolder("1QMZ");
+		//			System.out.println(bdh.getDataAsBioDataStruct().getPdbCode());
+		//			DataWriters dw = new DataWriters();
+		////
+		//			WriteFileRows wfr = dw.new WriteFileRows();
+		//			wfr.writeFile("OUT.ROWS", bdh);
+		//			WriteFileJSON wfj = dw.new WriteFileJSON();
+		//			wfj.writeFile("OUT.JSON", bdh);
+		//			
+		//
+		//			WriteFileCols wfc = dw.new WriteFileCols();
+		//			wfc.writeFile("OUT.COLS", bdh);
+		//			ReadCols rfc = dr.new ReadCols();
+		//			BasicDataHolder rfc_structure = (BasicDataHolder) rfc.readFile("OUT.COLS");
+		//			
+		//
+		//
+		//			FileCompressor bzComp = new Bzip2Compress();
+		//			FileDeCompressor bzDec = new Bzip2DeCompress();
+		//			bzComp.compressStream(wfj.writeInStream(bdh), "OUT.JSON");		
+		//			ReadJSON rfj = dr.new ReadJSON();
+		//			BasicDataHolder rfjb_structure = (BasicDataHolder) rfj.readStream(bzDec.decompressFile("OUT.JSON.bzip2"));
+		//			EquateStructures es = new EquateStructures();
+		//			es.fullStructureTest(bdh.getDataAsBioJava(), rfjb_structure.getDataAsBioJava());
+		//			String input_id = "1QMZ";
+		//			System.out.println(input_id);
+		//			BasicDataHolder bdh = new BasicDataHolder(input_id);
+		//			DataWriters dw = new DataWriters();
+		//			DataReaders dr = new DataReaders();
+		//			FileCompressors fc = new FileCompressors();
+		//			FileDecompressors fd = new FileDecompressors();
+		//			// NOW TRY A ROUNDRIP ON ALL THREE FORMATS
+		//			WriteFileJSON wfj = dw.new WriteFileJSON();
+		//			WriteFileCols wfc = dw.new WriteFileCols();
+		//			WriteFileRows wfr = dw.new WriteFileRows();
+		//			
+		//			// NOW THE COMPRESSIORS
+		//			GzipCompress gzp = fc.new GzipCompress();
+		//			Bzip2Compress bzp = fc.new Bzip2Compress();
+		//			// NOW THE DECOMPRESSORS
+		//			GzipDeCompress gzd = fd.new GzipDeCompress();
+		//			Bzip2DeCompress gzb = fd.new Bzip2DeCompress(); 
+		//					
+		//			
+		//			// DO THE WRITING
+		//			wfj.writeFile("OUT.JSON", bdh);
+		//			wfc.writeFile("OUT.COLS", bdh);
+		//			wfr.writeFile("OUT.ROWS", bdh);
+
+		//			// Sequence of Compressions
+		//			BasicDataHolder bdh = new BasicDataHolder(input_id);
+		/////// THIS IS A DEFINED RECIPE - BIO COMES BEFORE ARRAY TOO
+		//			bioCompOne(bdh);
+		//			bioCompTwo(bdh);
+		//			bioCompThree(bdh);
+		//			arrayCompOne(bdh);
+		//			arrayCompTwo(bdh);
+		//			arrayCompThree(bdh);
+		//			gzp.compressStream(wfj.writeInStream(bdh), "OUT.JSON");
+		/////// END OF RECIPE
+		//			// Now get the structure back
+		//			BasicDataHolder bdh_ret = (BasicDataHolder) rfj.readStream(gzb.decompressFile("OUT.JSON.bzip2"));
+		//			// And now decompressions
+		//			arrayDeCompThree(bdh_ret);
+		//			arrayDeCompTwo(bdh_ret);
+		//			arrayDeCompOne(bdh_ret);
+		//			bioCompThree(bdh_ret);			
+		//			bioCompTwo(bdh_ret);
+		//			bioCompOne(bdh_ret);
+		//			// bdh should equal bdh_ret
+		//			
+		//			// DO THE WRITING OF GZIPS
+		//			gzp.compressStream(wfj.writeInStream(bdh), "OUT.JSON");
+		//			gzp.compressStream(wfc.writeInStream(bdh), "OUT.COLS");
+		//			gzp.compressStream(wfr.writeInStream(bdh), "OUT.ROWS");
+		//			
+		//			// DO THE WRITING OF BZIP2
+		//			bzp.compressStream(wfj.writeInStream(bdh), "OUT.JSON");
+		//			bzp.compressStream(wfc.writeInStream(bdh), "OUT.COLS");
+		//			bzp.compressStream(wfr.writeInStream(bdh),"OUT.ROWS");
+		//					
+		//			// SET UP THE READERS
+		//			ReadJSON rfj = dr.new ReadJSON();
+		//			ReadRows rfr = dr.new ReadRows();
+		//			ReadCols rfc = dr.new ReadCols();
+		//			
+		//			BasicDataHolder rfjb_structure = (BasicDataHolder) rfj.readStream(gzb.decompressFile("OUT.JSON.bzip2"));
+		//			System.out.println("JSONBZ" + rfjb_structure.getStructureCode());			
+		//			// NOW DO THE READING OF FILES
+		//			BasicDataHolder rfj_structure = (BasicDataHolder) rfj.readFile("OUT.JSON");
+		//			System.out.println("JSON" + rfj_structure.getStructureCode());			
+		//			BasicDataHolder rfc_structure = (BasicDataHolder) rfc.readFile("OUT.COLS");
+		//			System.out.println("COLS" + rfc_structure.getStructureCode());		
+		//			BasicDataHolder rfr_structure = (BasicDataHolder) rfr.readFile("OUT.ROWS");
+		//			System.out.println("ROWS" + rfr_structure.getStructureCode());	
+		//			
+		//			
+		//			
+		//			
+		//			
+		//			//BasicDataHolder tmp_sddtruct = new BasicDataHolder(input_id);
+		//			System.out.println(rfj_structure.getDataAsHashMap());
+		//			EquateStructures es = new EquateStructures();
+		//			SimpleTest st = es.new SimpleTest(rfj_structure);
+		//			System.out.println("SIMPLE TEST "+st.structuresAreSame());
+		//			AtomsTest at = es.new AtomsTest(rfj_structure);
+		//			System.out.println("ATOM TEST "+at.structuresAreSame());
+		//			TypeTest tt = es.new TypeTest(rfj_structure);
+		//			System.out.println("TYPE TEST "+tt.structuresAreSame());			
+		////			// Roundtrip the structure -> e.g. check the hashmap works
+		//			rountrip_structure(input_id);
+		//			System.out.println("NOW CHECKING IF ROW WRITING WORKS");
+		//			// Now check that the write rows and readrows works
+		//			HashMap<String, ArrayList> hmap = getHmapOfmmcif(input_id);
+		//			writeFileRows("ME.TEST", hmap);
+		//			HashMap<String, ArrayList> new_hmap = readFileRows("ME.TEST");
+		//			// Now test this hashmap against the original id
+		//			System.out.println(compare_hashmap_atoms_vs_pdb(input_id, new_hmap));
+		//			System.out.println("NOW CHECKING IF COLUMN WRITING WORKS");
+		//			writeFileCols("ME.COL.TEST", hmap);
+		//			HashMap<String, ArrayList> col_hmap = readFileCols("ME.COL.TEST");
+		//			// Now test this hashmap against the original id
+		//			System.out.println(compare_hashmap_atoms_vs_pdb(input_id, col_hmap));
+		//			// NOW CHECK IF THE DELTAS WORK
+		//			updateDeltas(hmap);
+		//			writeFileCols("ME.DELTA.TEST", hmap);
+		//			HashMap<String, ArrayList> row_delta_hmap = readFileCols("ME.DELTA.TEST");
+		//			removeDeltas(row_delta_hmap);
+		//			// Now test this hashmap against the original id
+		//			// ROWS DOESN'T MAKE ANY SENSE NOW IF WE DO THIS
+		//			//writeFileRows("ME.DELTA_UNDONE.TEST", row_delta_hmap);
+		//			System.out.println(compare_hashmap_atoms_vs_pdb(input_id, row_delta_hmap));
+		//			
+		//			// NOW LET'S SEE HOW
+
+
+
+		//			System.out.println("NOW CHECKING IF COLUMN WRITING WORKS");
+		//			writeFileCols("ME.COL.TEST", hmap);
+		//			HashMap<String, ArrayList> col_delta_hmap = readFileCols("ME.COL.TEST");
+		//			System.out.println(compare_hashmap_atoms_vs_pdb(input_id, col_delta_hmap));
+		// THEN DO THE GZIP COMPRESSION / DECOMPRESSION
+
+		// FINALLY DO THE PARQUET VERSIONS
+
+		// TURN INTO TESTS AND CLEAN UP THE CLASSES
+
+		// ADD MORE TESTS IN THE COMPARISON -> MAKE A TEST TO COMPARE TWO BIOJAVA STRUCTURES FOR EQUIVALENCE -> REPORT ON LEVEL OF EQUIEVALENCE
+
+	}
+}		
 //		private static void removeDeltas(HashMap<String, ArrayList> hmap) {
 //		    // GET THE JSON AND ENCODE DELTAS    
 //		    // For the cartesian coords
@@ -570,4 +663,4 @@ import org.biojava.nbio.structure.align.model.AFPChain;
 
 
 
-	
+

@@ -46,8 +46,6 @@ public class TestBioCodec extends AbstractTestBioCodec {
 		// Check these are correctly transferred back
 		assertTrue(findDiffString(coress.get_atom_site_symbol(),procCoreSS.get_atom_site_symbol()));
 		assertTrue(findDiffString(coress.get_atom_site_group_PDB(),procCoreSS.get_atom_site_group_PDB()));
-//		assertTrue(findDiffString(coress.get_atom_site_auth_atom_id(),procCoreSS.get_atom_site_auth_atom_id()));
-//		assertTrue(findDiffString(coress.get_atom_site_auth_comp_id(),procCoreSS.get_atom_site_auth_comp_id()));
 		assertTrue(findDiffString(coress.get_atom_site_label_atom_id(),procCoreSS.get_atom_site_label_atom_id()));
 		assertTrue(findDiffString(coress.get_atom_site_label_comp_id(),procCoreSS.get_atom_site_label_comp_id()));
 	}

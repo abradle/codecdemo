@@ -24,6 +24,12 @@ public class SquashBenchmark {
 		return resultMap;
 	}
 	
+	public void brotliCompression(String inFile, String outFile) throws IOException, InterruptedException{
+		String printString = "/usr/local/bin/squash -f -k -c brotli "+inFile+"  "+outFile;
+		Process p = Runtime.getRuntime().exec(printString);
+		p.waitFor();
+	}
+	
 	private List<String> getCodecList(){
 		// Set up the different compressions
 		List<String> myList = new ArrayList<String>();
